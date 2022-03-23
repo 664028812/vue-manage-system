@@ -10,17 +10,9 @@
     </div>
     <div class="container">
       <div class="handle-box">
-        <el-input
-          v-model="query.name"
-          placeholder="用户名"
-          class="handle-input mr10"
-        ></el-input>
-        <el-button type="primary" icon="el-icon-search" @click="handleSearch"
-          >搜索</el-button
-        >
-        <el-button type="primary" icon="el-icon-search" @click="handleSearch"
-          >增加</el-button
-        >
+        <el-input v-model="query.name" placeholder="用户名" class="handle-input mr10"></el-input>
+        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="handleSearch">增加</el-button>
       </div>
       <el-table
         :data="tableData"
@@ -29,8 +21,7 @@
         ref="multipleTable"
         header-cell-class-name="table-header"
       >
-        <el-table-column prop="id" label="ID" width="55" align="center">
-        </el-table-column>
+        <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column>
         <el-table-column prop="name" label="用户名"></el-table-column>
         <el-table-column label="账户余额">
           <template #default="scope">￥{{ scope.row.money }}</template>
@@ -41,8 +32,7 @@
               class="table-td-thumb"
               :src="scope.row.thumb"
               :preview-src-list="[scope.row.thumb]"
-            >
-            </el-image>
+            ></el-image>
           </template>
         </el-table-column>
         <el-table-column prop="address" label="地址"></el-table-column>
@@ -56,8 +46,7 @@
                   ? 'danger'
                   : ''
               "
-              >{{ scope.row.state }}</el-tag
-            >
+            >{{ scope.row.state }}</el-tag>
           </template>
         </el-table-column>
 
@@ -68,15 +57,13 @@
               type="text"
               icon="el-icon-edit"
               @click="handleEdit(scope.$index, scope.row)"
-              >编辑
-            </el-button>
+            >编辑</el-button>
             <el-button
               type="text"
               icon="el-icon-delete"
               class="red"
               @click="handleDelete(scope.$index, scope.row)"
-              >删除</el-button
-            >
+            >删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -116,7 +103,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchData } from '../../api/index'
-
+import { GetAllUser, DeleteUser,GetUserInfoById,Register,UpdateUser } from "../../api/User.js";
 export default {
   name: 'usermanagement',
   setup() {
