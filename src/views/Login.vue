@@ -34,16 +34,28 @@
               ><el-input style="width: 100%" v-model="param.captcha"> </el-input
             ></el-col>
             <el-col :span="9"
-              ><p align="center" style="font-size: 20px; font-weight: bold">
-                验证码
-              </p>
+              ><img
+                :src="param.picPath"
+                alt="请输入验证码"
+                style="max-width: 100%; max-height: 100%"
+                @click="loginVerify()"
+              />
             </el-col>
           </el-row>
         </el-form-item>
         <div class="login-btn">
-          <el-button type="primary" @click="submitForm()">登录</el-button>
+          <el-button type="primary" @click="loginSubmit()">登录</el-button>
         </div>
-        <p class="login-tips" style="color: red">注册账号</p>
+        <el-row>
+          <el-col :span="12"
+            ><p class="login-tips" style="color: red">注册账号</p></el-col
+          >
+          <el-col :span="12"
+            ><p class="login-tips" style="color: red" align="right">
+              忘记密码
+            </p></el-col
+          >
+        </el-row>
       </el-form>
     </div>
   </div>
@@ -52,9 +64,10 @@
 <script>
 import { ref, reactive } from "vue";
 import { useStore } from "vuex";
+import storeHanle from "../store/index.js";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { CaptchData } from "../api/Captch.js";
+import { CaptchData, Login } from "../api/Captch.js";
 export default {
   setup() {
     const router = useRouter();
@@ -63,6 +76,7 @@ export default {
       password: "123123",
       captcha: "",
       captchaId: "",
+      picPath: "",
     });
 
     const rules = {
@@ -78,19 +92,19 @@ export default {
         { required: true, message: "请输入验证码", trigger: "blur" },
       ],
     };
-    const login = ref(null);
-    const submitForm = () => {
-      login.value.validate((valid) => {
-        if (valid) {
-          ElMessage.success("登录成功");
-          localStorage.setItem("ms_username", param.username);
-          router.push("/");
-        } else {
-          ElMessage.error("登录成功");
-          return false;
-        }
-      });
-    };
+    //const login = ref(null);
+    //const submitForm = () => {
+    // login.value.validate((valid) => {
+    //   if (valid) {
+    //     ElMessage.success("登录成功");
+    //     localStorage.setItem("ms_username", param.username);
+    //     router.push("/");
+    //   } else {
+    //     ElMessage.error("登录成功");
+    //     return false;
+    //   }
+    // });
+    // };
 
     const store = useStore();
     store.commit("clearTags");
@@ -98,8 +112,10 @@ export default {
     return {
       param,
       rules,
-      login,
-      submitForm,
+      router,
+      //store,
+      //login,
+      //submitForm,
     };
   },
   created() {
@@ -108,9 +124,30 @@ export default {
   methods: {
     loginVerify() {
       CaptchData({}).then((ele) => {
-        console.log("打印验证信息", ele);
-        this.picPath = ele.data.picPath;
-        this.loginForm.captchaId = ele.data.captchaId;
+        console.log("验证码信息获取", ele);
+        this.param.picPath = ele.data.picPath;
+        this.param.captchaId = ele.data.captchaId;
+      });
+    },
+    loginSubmit() {
+      Login({
+        Captcha: this.param.captcha,
+        CaptchaId: this.param.captchaId,
+        Password: this.param.username,
+        Username: this.param.username,
+      }).then((res) => {
+        if (res.code === 0) {
+          ElMessage.success("登录成功");
+          localStorage.setItem("ms_username", this.param.username); // 这里似乎可以不写 但是要处理路由哪儿
+          storeHanle.commit("setUserInfo", res.data.UserInfo); //设置用户信息
+          storeHanle.commit("setToken", res.data.token); //设置 token
+          console.log("登录返回数据", res);
+          this.router.push("/");
+        } else {
+          ElMessage.error("登录失败");
+          this.loginVerify();
+          return false;
+        }
       });
     },
   },
