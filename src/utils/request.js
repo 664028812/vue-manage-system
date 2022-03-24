@@ -38,7 +38,7 @@ service.interceptors.request.use(
     if (!config.donNotShowLoading) {
       showLoading();
     }
-    debugger;
+
     const token = store.getters["token"]; // 获取token
     const user = store.getters["userInfo"]; //获取用户信息
     config.headers = {
@@ -64,7 +64,7 @@ service.interceptors.request.use(
 // http response 拦截器
 service.interceptors.response.use(
   (response) => {
-    debugger;
+
     closeLoading();
     if (response.headers["new-token"]) {
       store.commit("setToken", response.headers["new-token"]);
