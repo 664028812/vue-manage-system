@@ -24,39 +24,37 @@
         <el-table-column prop="uID" label="ID" width="55" align="center"></el-table-column>
         <el-table-column prop="uLoginName" label="用户名" align="center"></el-table-column>
         <el-table-column prop="uRealName" label="真实姓名" align="center"></el-table-column>
-        <el-table-column prop="uStatus" label="状态" align="center"></el-table-column>
-        <el-table-column prop="sex" label="性别" align="center"></el-table-column>
-        <el-table-column prop="age" label="年龄" align="center"></el-table-column>
-        <el-table-column prop="birth" label="生日" align="center"></el-table-column>
-        <el-table-column prop="addr" label="地址" align="center"></el-table-column>
-        <!-- <el-table-column label="账户密码">
-          <template #default="scope">￥{{ scope.row.uLoginPWD }}</template>
-        </el-table-column>-->
-        <!-- <el-table-column label="头像(查看大图)" align="center">
+        <el-table-column prop="RoleNames" label="角色" width sortable>
           <template #default="scope">
-            <el-image
-              class="table-td-thumb"
-              :src="scope.row.thumb"
-              :preview-src-list="[scope.row.thumb]"
-            ></el-image>
-          </template>
-        </el-table-column>-->
-        <!-- <el-table-column prop="address" label="地址"></el-table-column> -->
-        <el-table-column label="状态" align="center">
-          <template #default="scope">
-            <el-tag
-              :type="
-                scope.row.uStatus === '1'
-                  ? 'success'
-                  : scope.row.uStatus === '0'
-                  ? 'danger'
-                  : ''
-              "
-            >{{ scope.row.uStatus }}</el-tag>
+            <el-tag v-for="item in scope.row.RoleNames" :key="item.Id">{{item}}</el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column prop="uCreateTime" label="注册时间" align="center"></el-table-column>
+        <el-table-column label="性别" align="center">
+          <template #default="scope">
+            <span>{{ formatSex(scope.row) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="age" label="年龄" align="center"></el-table-column>
+        <el-table-column prop="birth" label="生日" align="center">
+          <template #default="scope">
+            <span>{{ formatBirth(scope.row) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" align="center">
+          <template #default="scope">
+            <el-tag
+              :type="scope.row.uStatus == 0  ? 'success' : 'danger'"
+              disable-transitions
+            >{{scope.row.uStatus == 0 ? "正常":"禁用"}}</el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="uCreateTime" label="注册时间" align="center">
+          <template #default="scope">
+            <span>{{ formatBirth(scope.row) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <!-- <template #default="scope">
             <el-button
@@ -153,6 +151,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchData } from '../../api/index'
+import util from '../../utils/data'
 import {
   GetAllUser,
   DeleteUser,
@@ -271,6 +270,22 @@ export default {
       handleEdit,
       saveEdit,
     }
+  },
+  methods: {
+    //性别显示转换
+    formatSex: function (row) {
+      return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
+    },
+    formatBirth: function (row) {
+      return !row.birth || row.birth == ''
+        ? ''
+        : util.formatDate.format(new Date(row.birth), 'yyyy-MM-dd')
+    },
+    formatCreate: function (row) {
+      return !row.uCreateTime || row.uCreateTime == ''
+        ? ''
+        : util.formatDate.format(new Date(row.uCreateTime), 'yyyy-MM-dd')
+    },
   },
 }
 </script>
