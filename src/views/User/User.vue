@@ -99,18 +99,31 @@
     <!-- 编辑弹出框 -->
     <el-dialog title="编辑" v-model="editVisible" width="30%">
       <el-form label-width="70px">
+        <el-form-item label="昵称">
+          <el-input v-model="form.uRealName"></el-input>
+        </el-form-item>
         <el-form-item label="登录名">
           <el-input v-model="form.uLoginName"></el-input>
         </el-form-item>
-        <el-form-item label="真实姓名">
-          <el-input v-model="form.uLoginName"></el-input>
-        </el-form-item>
-        <el-form-item label="状态">
+        <!-- <el-form-item label="状态">
           <el-input v-model="form.uStatus"></el-input>
+        </el-form-item>-->
+
+        <el-form-item label="角色">
+          <!-- <el-select multiple v-model="form.RIDs" placeholder="请选择角色">
+            <el-option :key="0" :label="'未选择角色'" :value="0"></el-option>
+            <el-option v-for="item in roles" :key="item.Id" :label="item.Name" :value="item.Id"></el-option>
+          </el-select>-->
+          <el-select v-model="form.RIDs" multiple placeholder="Select" style="width: 240px">
+            <el-option
+              v-for="item in roles"
+              :key="item.name"
+              :label="item.name"
+              :value="item.name"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="form.uRemark"></el-input>
-        </el-form-item>
+
         <el-form-item label="性别">
           <!-- <el-input v-model="form.sex"></el-input> -->
           <el-radio-group v-model="form.sex">
@@ -134,7 +147,10 @@
           ></el-date-picker>
         </el-form-item>
         <el-form-item label="地址">
-          <el-input v-model="form.addr"></el-input>
+          <el-input type="textarea" v-model="form.addr"></el-input>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="form.uRemark"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -159,6 +175,8 @@ import {
   Register,
   UpdateUser,
 } from '../../api/User.js'
+import { GetRoles } from '../../api/Role.js'
+
 export default {
   name: 'usermanagement',
   setup() {
@@ -172,6 +190,20 @@ export default {
         label: '男',
       },
     ]
+    const users = ref([])
+    const roles = ref([])
+
+    const GetAllRole = () => {
+      //  这里处理用户角色数据
+      var query = { id: '' }
+      GetRoles(query).then((res) => {
+        console.log('获取到角色数据', res)
+        if (res.code === 0) {
+          roles.value = res.data
+        }
+        editVisible.value = true
+      })
+    }
 
     const query = reactive({
       Key: '',
@@ -242,8 +274,7 @@ export default {
         form[item] = row[item]
       })
       //直接数据赋值算了， 懒得重更新请求一次 多无聊的。
-
-      editVisible.value = true
+      GetAllRole() //获取用户的角色信息
     }
     const saveEdit = () => {
       editVisible.value = false
@@ -269,6 +300,8 @@ export default {
       handleDelete,
       handleEdit,
       saveEdit,
+      users,
+      roles,
     }
   },
   methods: {
