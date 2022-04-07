@@ -14,7 +14,7 @@ export const GetAllUser = (data) => {
 //删除用户
 export const DeleteUser = (data) => {
   return service({
-    url: "/api/User/Deleter",
+    url: "/api/User/Delete",
     method: "Post",
     data: data,
   });

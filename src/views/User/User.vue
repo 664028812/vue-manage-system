@@ -12,7 +12,7 @@
       <div class="handle-box">
         <el-input v-model="query.Key" placeholder="用户名" class="handle-input mr10"></el-input>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-        <el-button type="primary" icon="el-icon-search" @click="handleSearch">增加</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="HandleAdd">增加</el-button>
       </div>
       <el-table
         :data="tableData"
@@ -115,12 +115,7 @@
             <el-option v-for="item in roles" :key="item.Id" :label="item.Name" :value="item.Id"></el-option>
           </el-select>-->
           <el-select v-model="form.RIDs" multiple placeholder="Select" style="width: 240px">
-            <el-option
-              v-for="item in roles"
-              :key="item.name"
-              :label="item.name"
-              :value="item.name"
-            />
+            <el-option v-for="item in roles" :key="item.Id" :label="item.name" :value="item.Id" />
           </el-select>
         </el-form-item>
 
@@ -141,9 +136,9 @@
           <!-- <el-input v-model="form.birth"></el-input> -->
           <el-date-picker
             v-model="form.birth"
-            type="datetime"
+            type="date"
             placeholder="选择日期时间"
-            value-format="yyyy-MM-dd HH:mm:ss"
+            value-format="YYYY-MM-DD"
           ></el-date-picker>
         </el-form-item>
         <el-form-item label="地址">
@@ -157,6 +152,55 @@
         <span class="dialog-footer">
           <el-button @click="editVisible = false">取 消</el-button>
           <el-button type="primary" @click="saveEdit">确 定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 增加弹出框 -->
+    <el-dialog title="增加" v-model="AddVisible" width="30%">
+      <el-form label-width="70px">
+        <el-form-item label="昵称">
+          <el-input v-model="Addform.uRealName"></el-input>
+        </el-form-item>
+        <el-form-item label="登录名">
+          <el-input v-model="Addform.uLoginName"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="Addform.uLoginPWD" type="password" show-password></el-input>
+        </el-form-item>
+        <el-form-item label="性别">
+          <!-- <el-input v-model="form.sex"></el-input> -->
+          <el-radio-group v-model="Addform.sex">
+            <el-radio class="radio" :label="1">男</el-radio>
+            <el-radio class="radio" :label="0">女</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="年龄">
+          <!-- <el-input v-model="form.age"></el-input> -->
+          <el-input-number v-model="Addform.age" :min="1" :max="10" />
+        </el-form-item>
+
+        <el-form-item label="生日">
+          <!-- <el-input v-model="form.birth"></el-input> -->
+          <el-date-picker
+            v-model="Addform.birth"
+            type="date"
+            placeholder="选择日期时间"
+            value-format="YYYY-MM-DD"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input type="textarea" v-model="Addform.addr"></el-input>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="Addform.uRemark"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="AddVisible = false">取 消</el-button>
+          <el-button type="primary" @click="AddUser">确 定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -229,6 +273,7 @@ export default {
       query.page = 1
       getData()
     }
+
     // 分页导航
     const handlePageChange = (val) => {
       query.page = val
@@ -236,16 +281,18 @@ export default {
     }
 
     // 删除操作
-    const handleDelete = (index) => {
+    const handleDelete = (index, row) => {
       // 二次确认删除
-      console.log('handleDelete', index)
-
+      console.log('handleDelete-----------------', index)
+      console.log('handleDelete------', row)
       ElMessageBox.confirm('确定要删除吗？', '提示', {
         type: 'warning',
       })
         .then(() => {
-          ElMessage.success('删除成功')
-          tableData.value.splice(index, 1)
+          DeleteUser({ id: row.uID.toString() }).then((res) => {
+            ElMessage.success('删除成功')
+            tableData.value.splice(index, 1)
+          })
         })
         .catch(() => {})
     }
@@ -254,6 +301,7 @@ export default {
     const editVisible = ref(false)
     let form = reactive({
       uID: '',
+      RIDs: 0,
       uLoginName: '',
       uRealName: '',
       uStatus: 0,
@@ -264,12 +312,10 @@ export default {
       birth: '',
       addr: '',
     })
+
     let idx = -1
     const handleEdit = (index, row) => {
-      console.log('handleEdit', index)
-      console.log('handleEdit', row.uID)
       idx = index
-
       Object.keys(form).forEach((item) => {
         form[item] = row[item]
       })
@@ -277,29 +323,58 @@ export default {
       GetAllRole() //获取用户的角色信息
     }
     const saveEdit = () => {
-      editVisible.value = false
       ElMessage.success(`修改第 ${idx + 1} 行成功`)
       // Object.keys(form).forEach((item) => {
       //   tableData.value[idx][item] = form[item]
       // })
 
       //post 数据到服务端
+      form.birth = util.formatDate.format(new Date(form.birth), 'yyyy-MM-dd')
       UpdateUser(form).then((res) => {
+        editVisible.value = false
         console.log('更新结果？/?/???', res)
+        GetAllRole() //获取用户的角色信息
       })
     }
 
+    let Addform = reactive({
+      uLoginName: '',
+      uLoginPWD: '',
+      uRealName: '',
+      uRemark: '',
+      name: '',
+      sex: 1,
+      age: 0,
+      birth: '',
+      addr: '',
+    })
+
+    const AddVisible = ref(false) // 增加角色
+    const AddUser = () => {
+      Register(Addform).then((res) => {
+        console.log('新增结果？/?/???', Addform)
+        AddVisible.value = false
+        GetAllRole() //获取用户的角色信息
+      })
+    }
+    const HandleAdd = () => {
+      AddVisible.value = true
+    }
     return {
       query,
       tableData,
       pageTotal,
       editVisible,
+      AddVisible,
       form,
+      Addform,
       handleSearch,
+      HandleAdd,
       handlePageChange,
       handleDelete,
       handleEdit,
       saveEdit,
+      AddUser,
       users,
       roles,
     }
