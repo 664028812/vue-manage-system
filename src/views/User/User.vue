@@ -241,14 +241,12 @@ export default {
       //  这里处理用户角色数据
       var query = { id: '' }
       GetRoles(query).then((res) => {
-        console.log('获取到角色数据', res)
         if (res.code === 0) {
           roles.value = res.data
         }
-        editVisible.value = true
       })
     }
-
+    GetAllRole()
     const query = reactive({
       Key: '',
       page: 1,
@@ -259,7 +257,6 @@ export default {
     // 获取表格数据
     const getData = () => {
       GetAllUser(query).then((res) => {
-        console.log('获取用户信息数据', res)
         // tableData.value = res.list
         // pageTotal.value = res.pageTotal || 50
         pageTotal.value = res.data.total //总数
@@ -283,8 +280,7 @@ export default {
     // 删除操作
     const handleDelete = (index, row) => {
       // 二次确认删除
-      console.log('handleDelete-----------------', index)
-      console.log('handleDelete------', row)
+
       ElMessageBox.confirm('确定要删除吗？', '提示', {
         type: 'warning',
       })
@@ -319,22 +315,20 @@ export default {
       Object.keys(form).forEach((item) => {
         form[item] = row[item]
       })
-      //直接数据赋值算了， 懒得重更新请求一次 多无聊的。
-      GetAllRole() //获取用户的角色信息
+      editVisible.value = true
+      GetAllRole()
     }
     const saveEdit = () => {
       ElMessage.success(`修改第 ${idx + 1} 行成功`)
       // Object.keys(form).forEach((item) => {
       //   tableData.value[idx][item] = form[item]
       // })
-
       //post 数据到服务端
       form.birth = util.formatDate.format(new Date(form.birth), 'yyyy-MM-dd')
       UpdateUser(form).then((res) => {
-        editVisible.value = false
-        console.log('更新结果？/?/???', res)
-        GetAllRole() //获取用户的角色信息
+        getData() //获取用户的角色信息
       })
+      editVisible.value = false
     }
 
     let Addform = reactive({
@@ -352,9 +346,8 @@ export default {
     const AddVisible = ref(false) // 增加角色
     const AddUser = () => {
       Register(Addform).then((res) => {
-        console.log('新增结果？/?/???', Addform)
+        getData() //获取用户的角色信息
         AddVisible.value = false
-        GetAllRole() //获取用户的角色信息
       })
     }
     const HandleAdd = () => {
