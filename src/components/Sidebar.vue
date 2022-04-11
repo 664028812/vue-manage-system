@@ -114,7 +114,7 @@ export default {
         title: '菜单权限管理',
         subs: [
           {
-            index: '/SysUser',
+            index: '/Module',
             title: '接口管理',
           },
           {

@@ -49,6 +49,15 @@ const routes = [
           import(/* webpackChunkName: "table" */ "../views/User/Role.vue"),
       },
       {
+        path: "/Module",
+        name: "Module",
+        meta: {
+          title: "接口管理",
+        },
+        component: () =>
+          import(/* webpackChunkName: "table" */ "../views/Permission/Module.vue"),
+      },
+      {
         path: "/charts",
         name: "basecharts",
         meta: {
