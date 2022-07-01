@@ -14,7 +14,7 @@ export const BatchPostModules = (data) => {
 };
 
 //删除接口
-export const DeleteModules = (data) => {
+export const DeleteModule = (data) => {
   return service({
     url: "​/api​/Modules​/Delete",
     method: "Post",

@@ -158,6 +158,11 @@ export default {
         ],
       },
       {
+        icon: 'el-icon-lx-record',
+        index: '/donate',
+        title: '摄像头管理',
+      },
+      {
         icon: 'el-icon-lx-redpacket_fill',
         index: '/donate',
         title: '支持作者',

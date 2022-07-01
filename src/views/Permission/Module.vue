@@ -146,6 +146,15 @@ import {
   UpdateRole,
   SetUserRole,
 } from '../../api/Role.js'
+
+// 接口管理相关接口
+import {
+BatchPostModules,
+DeleteModule,
+GetModules,
+PostModules,
+PutModule
+} from '../../api/Module.js'
 export default {
   name: 'rolemanagement',
   setup() {
