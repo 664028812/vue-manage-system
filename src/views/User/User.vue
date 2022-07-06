@@ -56,19 +56,6 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
-          <!-- <template #default="scope">
-            <el-button
-              type="text"
-              icon="el-icon-edit"
-              @click="handleEdit(scope.$index, scope.row)"
-            >编辑</el-button>
-            <el-button
-              type="text"
-              icon="el-icon-delete"
-              class="red"
-              @click="handleDelete(scope.$index, scope.row)"
-            >删除</el-button>
-          </template>-->
           <template #default="scope">
             <el-button
               type="text"
@@ -110,10 +97,10 @@
         </el-form-item>-->
 
         <el-form-item label="角色">
-          <!-- <el-select multiple v-model="form.RIDs" placeholder="请选择角色">
+          <el-select multiple v-model="form.RIDs" placeholder="请选择角色">
             <el-option :key="0" :label="'未选择角色'" :value="0"></el-option>
             <el-option v-for="item in roles" :key="item.Id" :label="item.Name" :value="item.Id"></el-option>
-          </el-select>-->
+          </el-select>
           <el-select v-model="form.RIDs" multiple placeholder="Select" style="width: 240px">
             <el-option v-for="item in roles" :key="item.Id" :label="item.name" :value="item.Id" />
           </el-select>
@@ -207,7 +194,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchData } from '../../api/index'
@@ -220,174 +207,144 @@ import {
   UpdateUser,
 } from '../../api/User.js'
 import { GetRoles } from '../../api/Role.js'
-
-export default {
-  name: 'usermanagement',
-  setup() {
-    const options = [
-      {
-        value: '0',
-        label: '女',
-      },
-      {
-        value: '1',
-        label: '男',
-      },
-    ]
-    const users = ref([])
-    const roles = ref([])
-
-    const GetAllRole = () => {
-      //  这里处理用户角色数据
-      var query = { id: '' }
-      GetRoles(query).then((res) => {
-        if (res.code === 0) {
-          roles.value = res.data
-        }
-      })
-    }
-    GetAllRole()
-    const query = reactive({
-      Key: '',
-      page: 1,
-      pageSize: 10,
-    })
-    const tableData = ref([])
-    const pageTotal = ref(0)
-    // 获取表格数据
-    const getData = () => {
-      GetAllUser(query).then((res) => {
-        // tableData.value = res.list
-        // pageTotal.value = res.pageTotal || 50
-        pageTotal.value = res.data.total //总数
-        tableData.value = res.data.list
-      })
-    }
-    getData()
-
-    // 查询操作
-    const handleSearch = () => {
-      query.page = 1
-      getData()
-    }
-
-    // 分页导航
-    const handlePageChange = (val) => {
-      query.page = val
-      getData()
-    }
-
-    // 删除操作
-    const handleDelete = (index, row) => {
-      // 二次确认删除
-
-      ElMessageBox.confirm('确定要删除吗？', '提示', {
-        type: 'warning',
-      })
-        .then(() => {
-          DeleteUser({ id: row.uID.toString() }).then((res) => {
-            ElMessage.success('删除成功')
-            tableData.value.splice(index, 1)
-          })
-        })
-        .catch(() => {})
-    }
-
-    // 表格编辑时弹窗和保存
-    const editVisible = ref(false)
-    let form = reactive({
-      uID: '',
-      RIDs: 0,
-      uLoginName: '',
-      uRealName: '',
-      uStatus: 0,
-      uRemark: '',
-      name: '',
-      sex: 1,
-      age: 0,
-      birth: '',
-      addr: '',
-    })
-
-    let idx = -1
-    const handleEdit = (index, row) => {
-      idx = index
-      Object.keys(form).forEach((item) => {
-        form[item] = row[item]
-      })
-      editVisible.value = true
-      GetAllRole()
-    }
-    const saveEdit = () => {
-      ElMessage.success(`修改第 ${idx + 1} 行成功`)
-      // Object.keys(form).forEach((item) => {
-      //   tableData.value[idx][item] = form[item]
-      // })
-      //post 数据到服务端
-      form.birth = util.formatDate.format(new Date(form.birth), 'yyyy-MM-dd')
-      UpdateUser(form).then((res) => {
-        getData() //获取用户的角色信息
-      })
-      editVisible.value = false
-    }
-
-    let Addform = reactive({
-      uLoginName: '',
-      uLoginPWD: '',
-      uRealName: '',
-      uRemark: '',
-      name: '',
-      sex: 1,
-      age: 0,
-      birth: '',
-      addr: '',
-    })
-
-    const AddVisible = ref(false) // 增加角色
-    const AddUser = () => {
-      Register(Addform).then((res) => {
-        getData() //获取用户的角色信息
-        AddVisible.value = false
-      })
-    }
-    const HandleAdd = () => {
-      AddVisible.value = true
-    }
-    return {
-      query,
-      tableData,
-      pageTotal,
-      editVisible,
-      AddVisible,
-      form,
-      Addform,
-      handleSearch,
-      HandleAdd,
-      handlePageChange,
-      handleDelete,
-      handleEdit,
-      saveEdit,
-      AddUser,
-      users,
-      roles,
-    }
+const options = [
+  {
+    value: '0',
+    label: '女',
   },
-  methods: {
-    //性别显示转换
-    formatSex: function (row) {
-      return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
-    },
-    formatBirth: function (row) {
-      return !row.birth || row.birth == ''
-        ? ''
-        : util.formatDate.format(new Date(row.birth), 'yyyy-MM-dd')
-    },
-    formatCreate: function (row) {
-      return !row.uCreateTime || row.uCreateTime == ''
-        ? ''
-        : util.formatDate.format(new Date(row.uCreateTime), 'yyyy-MM-dd')
-    },
+  {
+    value: '1',
+    label: '男',
   },
+]
+const users = ref([])
+const roles = ref([])
+
+const GetAllRole = () => {
+  //  这里处理用户角色数据
+  var query = { id: '' }
+  GetRoles(query).then((res) => {
+    if (res.code === 0) {
+      roles.value = res.data
+    }
+  })
+}
+GetAllRole()
+const query = reactive({
+  Key: '',
+  page: 1,
+  pageSize: 10,
+})
+const tableData = ref([])
+const pageTotal = ref(0)
+// 获取表格数据
+const getData = () => {
+  GetAllUser(query).then((res) => {
+    // tableData.value = res.list
+    // pageTotal.value = res.pageTotal || 50
+    pageTotal.value = res.data.total //总数
+    tableData.value = res.data.list
+  })
+}
+getData()
+
+// 查询操作
+const handleSearch = () => {
+  query.page = 1
+  getData()
+}
+
+// 分页导航
+const handlePageChange = (val) => {
+  query.page = val
+  getData()
+}
+
+// 删除操作
+const handleDelete = (index, row) => {
+  // 二次确认删除
+
+  ElMessageBox.confirm('确定要删除吗？', '提示', {
+    type: 'warning',
+  })
+    .then(() => {
+      DeleteUser({ id: row.uID.toString() }).then((res) => {
+        ElMessage.success('删除成功')
+        tableData.value.splice(index, 1)
+      })
+    })
+    .catch(() => {})
+}
+
+// 表格编辑时弹窗和保存
+const editVisible = ref(false)
+let form = reactive({
+  uID: '',
+  RIDs: 0,
+  uLoginName: '',
+  uRealName: '',
+  uStatus: 0,
+  uRemark: '',
+  name: '',
+  sex: 1,
+  age: 0,
+  birth: '',
+  addr: '',
+})
+
+let idx = -1
+const handleEdit = (index, row) => {
+  idx = index
+  Object.keys(form).forEach((item) => {
+    form[item] = row[item]
+  })
+  editVisible.value = true
+  GetAllRole()
+}
+const saveEdit = () => {
+  ElMessage.success(`修改第 ${idx + 1} 行成功`)
+  form.birth = util.formatDate.format(new Date(form.birth), 'yyyy-MM-dd')
+  UpdateUser(form).then((res) => {
+    getData() //获取用户的角色信息
+  })
+  editVisible.value = false
+}
+
+let Addform = reactive({
+  uLoginName: '',
+  uLoginPWD: '',
+  uRealName: '',
+  uRemark: '',
+  name: '',
+  sex: 1,
+  age: 0,
+  birth: '',
+  addr: '',
+})
+
+const AddVisible = ref(false) // 增加角色
+const AddUser = () => {
+  Register(Addform).then((res) => {
+    getData() //获取用户的角色信息
+    AddVisible.value = false
+  })
+}
+const HandleAdd = () => {
+  AddVisible.value = true
+}
+
+function formatSex(row) {
+  return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
+}
+function formatBirth(row) {
+  return !row.birth || row.birth == ''
+    ? ''
+    : util.formatDate.format(new Date(row.birth), 'yyyy-MM-dd')
+}
+function formatCreate(row) {
+  return !row.uCreateTime || row.uCreateTime == ''
+    ? ''
+    : util.formatDate.format(new Date(row.uCreateTime), 'yyyy-MM-dd')
 }
 </script>
 

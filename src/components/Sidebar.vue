@@ -94,7 +94,7 @@ export default {
         ],
       },
       {
-        icon: 'el-icon-lx-calendar',
+        icon: 'el-icon-lx-people',
         index: '13',
         title: '用户角色管理',
         subs: [
@@ -109,7 +109,7 @@ export default {
         ],
       },
       {
-        icon: 'el-icon-lx-calendar',
+        icon: 'el-icon-lx-group',
         index: '14',
         title: '菜单权限管理',
         subs: [
@@ -118,7 +118,7 @@ export default {
             title: '接口管理',
           },
           {
-            index: '/SysRole',
+            index: '/PermissionItem',
             title: '菜单管理',
           },
           {

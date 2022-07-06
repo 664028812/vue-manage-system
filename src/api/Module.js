@@ -16,7 +16,7 @@ export const BatchPostModules = (data) => {
 //删除接口
 export const DeleteModule = (data) => {
   return service({
-    url: "​/api​/Modules​/Delete",
+    url: "/api/Modules/Delete",
     method: "Post",
     data: data,
   });
@@ -26,7 +26,7 @@ export const DeleteModule = (data) => {
 //获取接口
 export const GetModules = (data) => {
   return service({
-    url: "​/api​/Modules​/Get",
+    url: "/api/Modules/Get",
     method: "Post",
     data: data,
   });
@@ -36,7 +36,7 @@ export const GetModules = (data) => {
 //增加接口
 export const PostModules = (data) => {
   return service({
-    url: "​/api​/Modules​/Post",
+    url: "/api/Modules/Post",
     method: "Post",
     data: data,
   });
@@ -46,7 +46,7 @@ export const PostModules = (data) => {
 //更新接口
 export const PutModule = (data) => {
   return service({
-    url: "​/api​/Modules​/Put",
+    url: "/api/Modules/Put",
     method: "Post",
     data: data,
   });

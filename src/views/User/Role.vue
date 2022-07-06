@@ -133,7 +133,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchData } from '../../api/index'
@@ -146,142 +146,118 @@ import {
   UpdateRole,
   SetUserRole,
 } from '../../api/Role.js'
-export default {
-  name: 'rolemanagement',
-  setup() {
-    const statusList = ref([
-      { name: '激活', value: true },
-      { name: '禁用', value: false },
-    ])
-    const query = reactive({
-      Key: '',
-      page: 1,
-      pageSize: 10,
-    })
-    const tableData = ref([])
-    const pageTotal = ref(0)
-    // 获取表格数据
-    const getData = () => {
-      QueryRoles(query).then((res) => {
-        console.log('获取角色信息列表', res)
-        // tableData.value = res.list
-        // pageTotal.value = res.pageTotal || 50
-        pageTotal.value = res.data.total //总数
-        tableData.value = res.data.list
-      })
-    }
-    getData()
+const statusList = ref([
+  { name: '激活', value: true },
+  { name: '禁用', value: false },
+])
+const query = reactive({
+  Key: '',
+  page: 1,
+  pageSize: 10,
+})
+const tableData = ref([])
+const pageTotal = ref(0)
+// 获取表格数据
+const getData = () => {
+  QueryRoles(query).then((res) => {
+    console.log('获取角色信息列表', res)
+    // tableData.value = res.list
+    // pageTotal.value = res.pageTotal || 50
+    pageTotal.value = res.data.total //总数
+    tableData.value = res.data.list
+  })
+}
+getData()
 
-    const HandleAdd = () => {
-      addVisible.value = true
-    }
-    // 查询操作
-    const handleSearch = () => {
-      query.page = 1
-      getData()
-    }
-    // 分页导航
-    const handlePageChange = (val) => {
-      query.page = val
-      getData()
-    }
+const HandleAdd = () => {
+  addVisible.value = true
+}
+// 查询操作
+const handleSearch = () => {
+  query.page = 1
+  getData()
+}
+// 分页导航
+const handlePageChange = (val) => {
+  query.page = val
+  getData()
+}
 
-    // 删除操作
-    const handleDelete = (index, row) => {
-      // 二次确认删除
-      ElMessageBox.confirm('确定要删除吗？', '提示', {
-        type: 'warning',
-      })
-        .then(() => {
-          // ElMessage.success('删除成功')
-          // tableData.value.splice(index, 1)// 前端内存列表删除一个
-          DeleteRole({ id: row.Id.toString() }).then((res) => {
-            ElMessage.success('删除成功')
-            getData()
-          })
-        })
-        .catch(() => {})
-    }
-
-    // 表格编辑时弹窗和保存
-    const editVisible = ref(false)
-
-    let form = reactive({
-      Id: 0,
-      createBy: '',
-      name: '',
-      enabled: false,
-      description: '',
-      orderSort: '',
-    })
-
-    let idx = -1
-    const handleEdit = (index, row) => {
-      idx = index
-      console.log('打印传递过来的信息row', row)
-      Object.keys(form).forEach((item) => {
-        form[item] = row[item]
-      })
-
-      console.log('打印传递过来的信息form', form)
-      editVisible.value = true
-    }
-    const saveEdit = () => {
-      // editVisible.value = false
-      // ElMessage.success(`修改第 ${idx + 1} 行成功`)
-      // Object.keys(form).forEach((item) => {
-      //   tableData.value[idx][item] = form[item]
-      // })
-      UpdateRole(form).then((res) => {
-        editVisible.value = false
+// 删除操作
+const handleDelete = (index, row) => {
+  // 二次确认删除
+  ElMessageBox.confirm('确定要删除吗？', '提示', {
+    type: 'warning',
+  })
+    .then(() => {
+      // ElMessage.success('删除成功')
+      // tableData.value.splice(index, 1)// 前端内存列表删除一个
+      DeleteRole({ id: row.Id.toString() }).then((res) => {
+        ElMessage.success('删除成功')
         getData()
-        // ElMessage.success(`修改第 ${idx + 1} 行成功`)
       })
-    }
-
-    const addVisible = ref(false)
-    let addform = reactive({
-      createBy: '',
-      name: '',
-      enabled: false,
-      description: '',
-      orderSort: '',
     })
-    const addRole = () => {
-      AddRole(addform).then((res) => {
-        getData() //获取用户的角色信息
-        addVisible.value = false
-      })
-    }
-    return {
-      statusList,
-      query,
-      tableData,
-      pageTotal,
-      editVisible,
-      addVisible,
-      form,
-      addform,
-      handleSearch,
-      handlePageChange,
-      handleDelete,
-      handleEdit,
-      saveEdit,
-      HandleAdd,
-      addRole,
-    }
-  },
-  methods: {
-    //性别显示转换
-    formatSex: function (row) {
-      return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
-    },
-    formatCreate: function (row) {
-      return !row.createTime || row.createTime == ''
-        ? ''
-        : util.formatDate.format(new Date(row.createTime), 'yyyy-MM-dd')
-    },
-  },
+    .catch(() => {})
+}
+
+// 表格编辑时弹窗和保存
+const editVisible = ref(false)
+
+let form = reactive({
+  Id: 0,
+  createBy: '',
+  name: '',
+  enabled: false,
+  description: '',
+  orderSort: '',
+})
+
+let idx = -1
+const handleEdit = (index, row) => {
+  idx = index
+  console.log('打印传递过来的信息row', row)
+  Object.keys(form).forEach((item) => {
+    form[item] = row[item]
+  })
+
+  console.log('打印传递过来的信息form', form)
+  editVisible.value = true
+}
+const saveEdit = () => {
+  // editVisible.value = false
+  // ElMessage.success(`修改第 ${idx + 1} 行成功`)
+  // Object.keys(form).forEach((item) => {
+  //   tableData.value[idx][item] = form[item]
+  // })
+  UpdateRole(form).then((res) => {
+    editVisible.value = false
+    getData()
+    // ElMessage.success(`修改第 ${idx + 1} 行成功`)
+  })
+}
+
+const addVisible = ref(false)
+let addform = reactive({
+  createBy: '',
+  name: '',
+  enabled: false,
+  description: '',
+  orderSort: '',
+})
+const addRole = () => {
+  AddRole(addform).then((res) => {
+    getData() //获取用户的角色信息
+    addVisible.value = false
+  })
+}
+
+function formatSex(row) {
+  return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
+}
+function formatCreate(row) {
+  return !row.createTime || row.createTime == ''
+    ? ''
+    : util.formatDate.format(new Date(row.createTime), 'yyyy-MM-dd')
 }
 </script>
 

@@ -58,6 +58,15 @@ const routes = [
           import(/* webpackChunkName: "table" */ "../views/Permission/Module.vue"),
       },
       {
+        path: "/PermissionItem",
+        name: "PermissionItem",
+        meta: {
+          title: "菜单管理",
+        },
+        component: () =>
+          import(/* webpackChunkName: "table" */ "../views/Permission/PermissionItem.vue"),
+      },
+      {
         path: "/charts",
         name: "basecharts",
         meta: {
