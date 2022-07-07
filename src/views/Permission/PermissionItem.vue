@@ -13,34 +13,24 @@
         <el-input v-model="filtersName" placeholder="接口名" class="handle-input mr10"></el-input>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
 
-        <el-button type="primary" icon="el-icon-search" @click="HandleAdd">增加</el-button>
+        <el-button type="primary" icon="el-icon-lx-add" @click="HandleAdd">增加</el-button>
+        <el-button type="primary" icon="el-icon-edit" @click="HandleAdd">编辑</el-button>
+        <el-button type="primary" icon="el-icon-delete" @click="HandleAdd">删除</el-button>
       </div>
       <el-table
+        ref="lazyTableRef"
+        highlight-current-row
         :data="tableData"
-        row-key="ID"
+        row-key="id"
         border
         lazy
-        class="table"
         :load="load"
         style="width: 100%"
-        :tree-props="{ children: 'Children', hasChildren: 'HasChildren' }"
-        header-cell-class-name="table-header"
+        :tree-props="{ children: 'children', hasChildren: 'HasChildren' }"
       >
-        <el-table-column type="selection" width="50"></el-table-column>
-        <!-- <el-table-column prop="Id" label="ID" width="55" align="center"></el-table-column> -->
-
-        <!-- <el-table-column type="selection" width="50"></el-table-column> -->
-        <el-table-column prop="ID" label="ID" width="55" align="center"></el-table-column>
-        <el-table-column label="菜单/按钮" align="center">
-          <template #default="scope">
-            <div style="display: flex; align-items: center">
-              <el-icon>
-                <timer />
-              </el-icon>
-              <span style="margin-left: 10px">{{ scope.row.name }}</span>
-            </div>
-          </template>
-        </el-table-column>
+        <!-- <el-table-column prop="id" label="ID" width="55" align="center"></el-table-column> -->
+        <el-table-column type="index" width="80"></el-table-column>
+        <el-table-column prop="name" label="菜单/按钮" width="200"></el-table-column>
 
         <el-table-column prop="code" label="路由地址" align="center"></el-table-column>
         <el-table-column prop="MName" label="api接口" align="center"></el-table-column>
@@ -49,43 +39,44 @@
         <el-table-column prop="isButton" label="是否是按钮" align="center">
           <template #default="scope">
             <el-tag
-              :type="scope.row.isButton == true  ? 'success' : 'danger'"
+              :type="!scope.row.isButton == true  ? 'success' : 'danger'"
               disable-transitions
-            >{{scope.row.isButton == true ? "是":"否"}}</el-tag>
+            >{{!scope.row.isButton == true ? "是":"否"}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="func" label="按钮事件" align="center"></el-table-column>
         <el-table-column prop="isHide" label="是否隐藏" align="center">
           <template #default="scope">
             <el-tag
-              :type="scope.row.isHide == true  ? 'success' : 'danger'"
+              :type="!scope.row.isHide == true  ? 'success' : 'danger'"
               disable-transitions
-            >{{scope.row.isHide == true ? "是":"否"}}</el-tag>
+            >{{!scope.row.isHide == true ? "是":"否"}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="iskeepAlive" label="KeepLive" align="center">
           <template #default="scope">
             <el-tag
-              :type="scope.row.iskeepAlive == true  ? 'success' : 'danger'"
+              :type="!scope.row.iskeepAlive == true  ? 'success' : 'danger'"
               disable-transitions
-            >{{scope.row.iskeepAlive == true ? "是":"否"}}</el-tag>
+            >{{!scope.row.iskeepAlive == true ? "是":"否"}}</el-tag>
           </template>
         </el-table-column>
       </el-table>
+
       <div class="pagination">
         <el-pagination
           background
           layout="prev, pager, next"
-          :current-page="query.page"
-          :page-size="query.pageSize"
+          :page-size="50"
           :total="pageTotal"
           @current-change="handlePageChange"
+          style="float:right;"
         ></el-pagination>
       </div>
     </div>
 
     <!-- 编辑弹出框 -->
-    <el-dialog title="编辑" v-model="editVisible" width="30%">
+    <!-- <el-dialog title="编辑" v-model="editVisible" width="30%">
       <el-form label-width="70px">
         <el-form-item label="接口描述">
           <el-input v-model="form.name"></el-input>
@@ -114,11 +105,15 @@
           <el-button type="primary" @click="saveEdit">确 定</el-button>
         </span>
       </template>
-    </el-dialog>
+    </el-dialog>-->
 
     <!-- 新增弹出框 -->
     <el-dialog title="添加" v-model="addVisible" width="30%">
-      <el-form label-width="70px">
+      <el-form :model="addform" label-width="70px">
+        <el-form-item label="菜单名称" prop="Name">
+          <el-input v-model="addform.name" auto-complete="off"></el-input>
+        </el-form-item>
+
         <el-form-item label="接口描述">
           <el-input v-model="addform.name"></el-input>
         </el-form-item>
@@ -151,8 +146,8 @@
   </div>
 </template>
 
-<script>
-import { ref, reactive } from 'vue'
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchData } from '../../api/index'
 import util from '../../utils/data'
@@ -178,154 +173,155 @@ import {
   PostModules,
   PutModule,
 } from '../../api/Module.js'
-export default {
-  name: 'Modulemanagement',
-  setup() {
-    const statusList = ref([
-      { name: '激活', value: true },
-      { name: '禁用', value: false },
-    ])
-    const query = reactive({
-      Key: '',
-      FatherNode: '',
-      // page: 1,
-      // pageSize: 10,
-    })
-
-    const filtersName = ref([])
-    const tableData = ref([])
-    const pageTotal = ref(0)
-    // 获取表格数据
-    const getData = () => {
-      GetTreeTable(query).then((res) => {
-        pageTotal.value = res.data.length //总数
-        tableData.value = res.data
-      })
-    }
+const lazyTableRef = ref(null)
+const filtersName = ref('')
+const statusList = ref([
+  { name: '激活', value: true },
+  { name: '禁用', value: false },
+])
+const query = reactive({
+  Key: '',
+  FatherNode: '',
+  // page: 1,
+  // pageSize: 10,
+})
+const page = ref('1')
+const tableData = ref([])
+const pageTotal = ref(0)
+// 获取表格数据
+const getData = () => {
+  query.Key = filtersName.value
+  GetTreeTable(query).then((res) => {
+    pageTotal.value = res.data.length //总数
+    tableData.value = res.data
+  })
+}
+//
+onMounted(() => {
+  setTimeout(() => {
     getData()
+  }, 500)
+})
 
-    const HandleAdd = () => {
-      addVisible.value = true
-    }
-    // 查询操作
-    const handleSearch = () => {
-      query.page = 1
-      getData()
-    }
-    // 分页导航
-    const handlePageChange = (val) => {
-      query.page = val
-      getData()
-    }
+const HandleAdd = () => {
+  addVisible.value = true
+}
+// 查询操作
+const handleSearch = () => {
+  page.value = 1
+  getData()
+}
+// 分页导航
+function handlePageChange(val) {
+  page.value = val
+  getData()
+}
 
-    // 删除操作
-    const handleDelete = (index, row) => {
-      // 二次确认删除
-      ElMessageBox.confirm('确定要删除吗？', '提示', {
-        type: 'warning',
-      })
-        .then(() => {
-          // ElMessage.success('删除成功')
-          // tableData.value.splice(index, 1)// 前端内存列表删除一个
-          DeleteModule({ id: row.Id.toString() }).then((res) => {
-            ElMessage.success('删除成功')
-            getData()
-          })
+// 删除操作
+const handleDelete = (index, row) => {
+  // 二次确认删除
+  ElMessageBox.confirm('确定要删除吗？', '提示', {
+    type: 'warning',
+  })
+    .then(() => {
+      // DeleteModule({ id: row.Id.toString() }).then((res) => {
+      //   ElMessage.success('删除成功')
+      //   getData()
+      // // })
+
+      const store = lazyTableRef.value.store
+      //判断是父还是子
+      if (item.hasOwnProperty('HasChildren')) {
+        //父对象删除
+        console.log(74, store.states.data.value)
+        const fatherList = store.states.data.value
+        //删除
+        const delIndex = fatherList.findIndex((i) => item.ID === i.ID)
+        Delete({ id: delIndex }).then((res) => {
+          ElMessage.success('删除成功')
+          getData()
         })
-        .catch(() => {})
-    }
-
-    // 表格编辑时弹窗和保存
-    const editVisible = ref(false)
-
-    let form = reactive({
-      Id: 0,
-      createBy: '',
-      name: '',
-      enabled: false,
-      linkUrl: '',
-      orderSort: '',
-    })
-
-    let idx = -1
-    const handleEdit = (index, row) => {
-      idx = index
-      console.log('打印传递过来的信息row', row)
-      Object.keys(form).forEach((item) => {
-        form[item] = row[item]
-      })
-
-      console.log('打印传递过来的信息form', form)
-      editVisible.value = true
-    }
-    const saveEdit = () => {
-      PutModule(form).then((res) => {
-        editVisible.value = false
-        getData()
-        // ElMessage.success(`修改第 ${idx + 1} 行成功`)
-      })
-    }
-    const addVisible = ref(false)
-    let addform = reactive({
-      linkUrl: '', // 接口地址
-      name: '', // 接口描述
-      enabled: false, //状态
-      orderSort: 0, //排序
-    })
-    const AddModules = () => {
-      PostModules(addform).then((res) => {
-        getData() //获取用户的角色信息
-        addVisible.value = false
-      })
-    }
-
-    const load = (tree, treeNode, resolve) => {
-      debugger
-      // let para = {
-      //   page: this.page,
-      //   f: tree.Id,
-      //   key: this.filters.Name,
-      // }
-      let para = {
-        Key: tree.Id,
-        FatherNode: filtersName,
+      } else {
+        //子对象删除
+        const childList = store.states.lazyTreeNodeMap.value[item.parentId]
+        //删除
+        const delIndex = childList.findIndex((i) => item.ID === i.ID)
+        Delete({ id: delIndex }).then((res) => {
+          ElMessage.success('删除成功')
+          getData()
+        })
       }
-      GetTreeTable(para).then((res) => {
-        resolve(res.data)
-      })
-    }
+    })
+    .catch(() => {})
+}
 
-    return {
-      filtersName,
-      statusList,
-      query,
-      tableData,
-      pageTotal,
-      editVisible,
-      addVisible,
-      form,
-      addform,
-      handleSearch,
-      handlePageChange,
-      handleDelete,
-      handleEdit,
-      saveEdit,
-      HandleAdd,
-      AddModules,
-      load,
+// 表格编辑时弹窗和保存
+const editVisible = ref(false)
+
+let form = reactive({
+  Id: 0,
+  createBy: '',
+  name: '',
+  enabled: false,
+  linkUrl: '',
+  orderSort: '',
+})
+
+let idx = -1
+const handleEdit = (index, row) => {
+  idx = index
+  console.log('打印传递过来的信息row', row)
+  Object.keys(form).forEach((item) => {
+    form[item] = row[item]
+  })
+
+  console.log('打印传递过来的信息form', form)
+  editVisible.value = true
+}
+const saveEdit = () => {
+  PutModule(form).then((res) => {
+    editVisible.value = false
+    getData()
+    // ElMessage.success(`修改第 ${idx + 1} 行成功`)
+  })
+}
+const addVisible = ref(false) // 增加窗口控制器
+let addform = reactive({
+  linkUrl: '', // 接口地址
+  name: '', // 接口描述
+  enabled: false, //状态
+  orderSort: 0, //排序
+})
+const AddModules = () => {
+  PostModules(addform).then((res) => {
+    getData() //获取用户的角色信息
+  })
+}
+
+const load = (tree, treeNode, resolve) => {
+  //根据父组件的id通过接口得到子数据， 这里用setTimeout模拟
+  setTimeout(() => {
+    var f = tree.id.toString()
+    let para = {
+      Key: filtersName.value,
+      FatherNode: f,
     }
-  },
-  methods: {
-    //性别显示转换
-    formatSex: function (row) {
-      return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
-    },
-    formatCreate: function (row) {
-      return !row.createTime || row.createTime == ''
-        ? ''
-        : util.formatDate.format(new Date(row.createTime), 'yyyy-MM-dd')
-    },
-  },
+    console.log('=================tree======', tree)
+    console.log('===================para====', para)
+    GetTreeTable(para).then((res) => {
+      console.log('===================res====', res)
+      resolve(res.data)
+    })
+  }, 500)
+}
+
+function formatSex(row) {
+  return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知'
+}
+function formatCreate(row) {
+  return !row.createTime || row.createTime == ''
+    ? ''
+    : util.formatDate.format(new Date(row.createTime), 'yyyy-MM-dd')
 }
 </script>
 

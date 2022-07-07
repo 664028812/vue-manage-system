@@ -66,6 +66,16 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "table" */ "../views/Permission/PermissionItem.vue"),
       },
+      //Assign.vue
+      {
+        path: "/Assign",
+        name: "Assign",
+        meta: {
+          title: "权限管理",
+        },
+        component: () =>
+          import(/* webpackChunkName: "table" */ "../views/Permission/Assign.vue"),
+      },
       {
         path: "/charts",
         name: "basecharts",

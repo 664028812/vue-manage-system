@@ -122,7 +122,7 @@ export default {
             title: '菜单管理',
           },
           {
-            index: '/SysRole',
+            index: '/Assign',
             title: '权限分配',
           },
         ],
