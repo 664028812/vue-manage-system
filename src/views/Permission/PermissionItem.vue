@@ -114,26 +114,79 @@
           <el-input v-model="addform.name" auto-complete="off"></el-input>
         </el-form-item>
 
-        <el-form-item label="接口描述">
-          <el-input v-model="addform.name"></el-input>
-        </el-form-item>
-        <el-form-item label="接口地址">
-          <el-input v-model="addform.linkUrl"></el-input>
+        <el-form-item label="菜单类型">
+          <el-radio-group @change="clkType" v-model="addform.MenuType">
+            <el-radio label="目录"></el-radio>
+            <el-radio label="页面"></el-radio>
+            <el-radio label="按钮"></el-radio>
+          </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="状态">
-          <el-select v-model="form.enabled" placeholder="请选择角色状态">
+        <el-form-item label="路由地址" prop="Code">
+          <el-input v-model="addform.code" auto-complete="off"></el-input>
+          <!-- <el-tooltip placement="top">
+         
+          
+          </el-tooltip>-->
+        </el-form-item>
+
+        <el-form-item label="描述" prop="Description">
+          <el-input v-model="addform.description" auto-complete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item label="状态" prop="Enabled">
+          <el-select v-model="addform.enabled" placeholder="请选择状态">
             <el-option
               v-for="item in statusList"
               :key="item.value"
-              :label="item.name"
+              :label="item.Name"
               :value="item.value"
-            />
+            ></el-option>
           </el-select>
         </el-form-item>
 
-        <el-form-item label="排序">
-          <el-input v-model="addform.orderSort"></el-input>
+        <el-form-item label="排序" prop="OrderSort">
+          <el-input v-model="addform.orderSort" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item prop="IsButton" label="是否按钮" width sortable>
+          <el-switch v-model="addform.isButton"></el-switch>
+        </el-form-item>
+        <el-form-item label="按钮事件" prop="Func">
+          <el-input v-model="addform.func" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item prop="IsHide" label="隐藏菜单" width sortable>
+          <el-switch v-model="addform.isHide"></el-switch>
+        </el-form-item>
+        <el-form-item prop="IskeepAlive" label="keepAlive" width sortable>
+          <el-switch v-model="addform.iskeepAlive"></el-switch>
+        </el-form-item>
+        <el-form-item prop="PidArr" label="父级菜单" width sortable>
+          <el-cascader
+            placeholder="请选择，支持搜索功能"
+            style="width: 400px"
+            v-model="addform.PidArr"
+            :options="options"
+            filterable
+            :key="isResouceShow"
+            :props="{ checkStrictly: true , expandTrigger: 'hover'}"
+            v-if="!editLoading"
+          ></el-cascader>
+          <el-cascader placeholder="加载中..." style="width: 400px" v-if="editLoading"></el-cascader>
+        </el-form-item>
+
+        <el-form-item prop="Mid" label="API接口" width sortable>
+          <el-select style="width: 100%;" v-model="addform.mid" placeholder="请选择API">
+            <el-option :key="0" :value="0" :label="'无需api'"></el-option>
+            <el-option
+              v-for="item in modules"
+              :key="item.Id"
+              :value="item.Id"
+              :label="item.linkUrl"
+            >
+              <span style="float: left">{{ item.linkUrl }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">{{ item.name }}</span>
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -167,12 +220,10 @@ import {
 
 // 接口管理相关接口
 import {
-  BatchPostModules,
-  DeleteModule,
-  GetModules,
-  PostModules,
-  PutModule,
+  GetModules, // 获取全部得接口
 } from '../../api/Module.js'
+
+const editLoading = ref(false)
 const lazyTableRef = ref(null)
 const filtersName = ref('')
 const statusList = ref([
@@ -189,6 +240,9 @@ const page = ref('1')
 const tableData = ref([])
 const pageTotal = ref(0)
 // 获取表格数据
+
+const modules = ref([]) //接口api列表
+const options = ref([]) //菜单树得数据
 const getData = () => {
   query.Key = filtersName.value
   GetTreeTable(query).then((res) => {
@@ -196,16 +250,32 @@ const getData = () => {
     tableData.value = res.data
   })
 }
-//
+
+///获取得是接口数据
+const getData1 = () => {
+  GetModules(query).then((res) => {
+    console.log('获取接口信息列表', res)
+    modules.value = res.data.list
+    console.log('获取接口信息列表', res.data.list)
+  })
+}
+
+///获取菜单树得接口
+const getData2 = (id) => {
+  GetPermissionTree({ pid: id }).then((res) => {
+    console.log('获取菜单树', res)
+    // 菜单树得数据
+    options.value.push(res.data)
+  })
+}
+
 onMounted(() => {
   setTimeout(() => {
     getData()
+    getData1()
   }, 500)
 })
 
-const HandleAdd = () => {
-  addVisible.value = true
-}
 // 查询操作
 const handleSearch = () => {
   page.value = 1
@@ -286,12 +356,52 @@ const saveEdit = () => {
   })
 }
 const addVisible = ref(false) // 增加窗口控制器
+const addLoading = ref(false)
+
 let addform = reactive({
-  linkUrl: '', // 接口地址
-  name: '', // 接口描述
-  enabled: false, //状态
-  orderSort: 0, //排序
+  CreateBy: '',
+  CreateId: '',
+  PidArr: [],
+  mid: 0,
+  orderSort: 0,
+  name: '',
+  code: '',
+  description: '',
+  icon: '',
+  func: '',
+  enabled: true,
+  isButton: false,
+  isHide: false,
+  iskeepAlive: false,
+  MenuType: '',
 })
+//现实新增界面
+const HandleAdd = () => {
+  addVisible.value = true
+  options.value = []
+  addLoading.value = true
+
+  addform = {
+    CreateBy: '',
+    CreateId: '',
+    PidArr: [],
+    mid: 0,
+    orderSort: 0,
+    name: '',
+    code: '',
+    description: '',
+    icon: '',
+    func: '',
+    enabled: true,
+    isButton: false,
+    isHide: false,
+    iskeepAlive: false,
+    MenuType: '',
+  }
+  getData2()
+  //
+}
+
 const AddModules = () => {
   PostModules(addform).then((res) => {
     getData() //获取用户的角色信息
@@ -322,6 +432,18 @@ function formatCreate(row) {
   return !row.createTime || row.createTime == ''
     ? ''
     : util.formatDate.format(new Date(row.createTime), 'yyyy-MM-dd')
+}
+
+function clkType() {
+  addform.isButton = false
+  if (addform.MenuType == '页面') {
+    addform.code = ''
+  } else if (addform.MenuType == '目录') {
+    addform.code = '-'
+  } else if (addform.MenuType == '按钮') {
+    addform.code = ' '
+    addform.isButton = true
+  }
 }
 </script>
 
