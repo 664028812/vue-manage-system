@@ -23,6 +23,14 @@
 </template>
 <script setup>
 import { ref, onMounted } from 'vue'
+import { GetRoles } from '../../api/Role.js'
+
+import {
+  Assign,
+  GetPermissionTree,
+  GetPermissionIdByRoleId,
+} from '../../api/Permission.js'
+
 const lazyTableRef = ref(null)
 //模拟获取父list
 const fatherList = ref([])
